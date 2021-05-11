@@ -342,11 +342,37 @@ def sha_256(input_string):
     final_hash = hex_return(hash_0) + hex_return(hash_1) + hex_return(hash_2) + hex_return(hash_3) + hex_return(hash_4) + hex_return(hash_5) + hex_return(hash_6) + hex_return(hash_7)
     return(final_hash)
 
-
-if __name__ == "__main__":
+def hashNCheckWord(word):
+    utf_word = word.encode('utf-8')
     lib = sha256(utf_word).hexdigest()
     print(f"SHA Lib:   {lib}")
     basic = sha_256(word)
     print(f"SHA Basic: {basic}")
     chksum = basic == lib
     print(f"Checksum: {chksum}")
+
+def hashNCheckList(elems):
+    for elem in elems:
+        utf_word = elem.encode('utf-8')
+        lib = sha256(utf_word).hexdigest()
+        basic = sha_256(word)
+        chksum = basic == lib
+        if (~chksum):
+            break
+    if (chksum):
+        print("All hashes matched!")
+
+if __name__ == "__main__":
+    if (len(sys.argv) == 3):
+        if (sys.argv[1] == "-f"):
+            file = open(sys.argv[2])
+            lines = file.read()
+            n = 50
+            words = [lines[i:i+n] for i in range(0, len(lines), n)]
+            for word in words:
+                hashNCheckList(word)
+        else:
+            hashNCheckWord(word)
+    else:
+        hashNCheckWord(word)
+
