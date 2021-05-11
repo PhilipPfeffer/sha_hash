@@ -4,6 +4,8 @@ from hashlib import sha256
 word = "how now brown cow"
 utf_word = word.encode('utf-8')
 
+# Source: [https://stackoverflow.com/questions/7321694/sha-256-implementation-in-python]
+
 initial_hash_values=[
 '6a09e667','bb67ae85','3c6ef372','a54ff53a',
 '510e527f','9b05688c','1f83d9ab','5be0cd19'
