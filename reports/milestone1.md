@@ -12,7 +12,12 @@ The software implementation can be found at: https://github.com/PhilipPfeffer/sh
 
 ## Setup Instructions:
 ```bash
-# Please add instructions for running your software demo here
+There are three modes on our software demo:
+
+- If you wish to run a simple demo with a hard-coded string, simply call "python3 sha.py"
+- If you wish to run the script with your own string, run "python3 sha.py -s yoursamplestring"
+- If you wish to run the script with a sample .txt file, run "python3 sha.py -f yourfile.txt". We added bible.txt and small_bible.txt to the repo if you wish to try the script out with those files.
+
 ```
 
 ## Performance Analysis:
