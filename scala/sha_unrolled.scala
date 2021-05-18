@@ -3,7 +3,7 @@ package spatial.tests.apps
 import spatial.dsl._
 
 
-@spatial object SHA_PREPROCESSING extends SpatialApp {
+@spatial object SHA_PREPROCESSING_UNROLLED extends SpatialApp {
 
   type ULong = FixPt[FALSE, _32, _0]
   type UInt8 = FixPt[FALSE, _8, _0]
@@ -43,8 +43,11 @@ import spatial.dsl._
       )
 
       val data = SRAM[UInt8](64)
-      val NUM_CHUNKS = 8
-      val m_preprocess = SRAM[ULong](NUM_CHUNKS, 64)
+      val NUM_CHUNKS = 4
+      val m_preprocess_0 = SRAM[ULong](64).conflictable
+      val m_preprocess_1 = SRAM[ULong](64).conflictable
+      val m_preprocess_2 = SRAM[ULong](64).conflictable
+      val m_preprocess_3 = SRAM[ULong](64).conflictable
 
       def SHFR(x: ULong, y: Int): ULong = {
         val tmp = Reg[ULong](0)
@@ -89,7 +92,7 @@ import spatial.dsl._
         ( x >> 6 | x << (32-6) ) ^ ( x >> 11 | x << (32-11) ) ^ ( x >> 25 | x << (32-25) )
       }
 
-      def sha_transform_preprocess(chunk_idx: I32): Unit = {
+      def sha_transform_preprocess(m_preprocess: SRAM1[ULong]): Unit = {
         val A = Reg[ULong]
         val B = Reg[ULong]
         val C = Reg[ULong]
@@ -109,7 +112,7 @@ import spatial.dsl._
         H := state(7)
 
         Foreach(64 by 1){ i =>
-          val tmp1 = H + EP1(E) + CH(E,F,G) + K_LUT(i) + m_preprocess(chunk_idx, i)
+          val tmp1 = H + EP1(E) + CH(E,F,G) + K_LUT(i) + m_preprocess(i)
           val tmp2 = EP0(A) + MAJ(A,B,C)
           // println(" " + i + " : " + A.value + " " + B.value + " " +
           //   C.value + " " + D.value + " " + E.value + " " + F.value + " " + G.value + " " + H.value)
@@ -126,15 +129,15 @@ import spatial.dsl._
 
 
       // Populates a chunk of the m array (up to 512 bits)
-      def populate_m_chunk(chunk_idx: I32): Unit = {
+      def populate_m_chunk(m_preprocess: SRAM1[ULong]): Unit = {
         Foreach(0 until 64 by 1){ byte_idx =>
           if ( byte_idx < 16 ) {
             val j = byte_idx << 2
             // println(" m_preprocess(" + chunk_idx + ", " + byte_idx + ") = " + {(data(j).as[ULong] << 24) | (data(j+1).as[ULong] << 16) | (data(j+2).as[ULong] << 8) | (data(j+3).as[ULong])})
-            m_preprocess(chunk_idx, byte_idx) = (data(j).as[ULong] << 24) | (data(j+1).as[ULong] << 16) | (data(j+2).as[ULong] << 8) | (data(j+3).as[ULong])
+            m_preprocess(byte_idx) = (data(j).as[ULong] << 24) | (data(j+1).as[ULong] << 16) | (data(j+2).as[ULong] << 8) | (data(j+3).as[ULong])
           } else {
             // println(" m_preprocess(" + chunk_idx + ", " + byte_idx + ") = " + SIG1(m_preprocess(chunk_idx, byte_idx-2)) + " " + m_preprocess(chunk_idx, byte_idx-7) + " " + SIG0(m_preprocess(chunk_idx, byte_idx-15)) + " " + m_preprocess(chunk_idx, byte_idx-16))
-            m_preprocess(chunk_idx, byte_idx) = SIG1(m_preprocess(chunk_idx, byte_idx-2)) + m_preprocess(chunk_idx, byte_idx-7) + SIG0(m_preprocess(chunk_idx, byte_idx-15)) + m_preprocess(chunk_idx, byte_idx-16)
+            m_preprocess(byte_idx) = SIG1(m_preprocess(byte_idx-2)) + m_preprocess(byte_idx-7) + SIG0(m_preprocess(byte_idx-15)) + m_preprocess(byte_idx-16)
           }
         }
       }
@@ -149,8 +152,18 @@ import spatial.dsl._
           data load text_dram(i::i+datalen.value)
           
           if (datalen.value == 64.to[Int]) {
-            populate_m_chunk(i/64)
-            // chunk_idx :+= 1
+            println("here")
+            if (i % NUM_CHUNKS == 0) {
+                populate_m_chunk(m_preprocess_0)
+            } else if (i % NUM_CHUNKS == 1) {
+                populate_m_chunk(m_preprocess_1)
+            } else if (i % NUM_CHUNKS == 2) {
+                populate_m_chunk(m_preprocess_2)
+            } else if (i % NUM_CHUNKS == 3) {
+                populate_m_chunk(m_preprocess_3)
+            } else {
+                assert(false)
+            }
           }
         }
 
@@ -159,7 +172,17 @@ import spatial.dsl._
         Sequential.Foreach(0 until len.value by 64 par 1) { i =>
           datalen := min(len.value - i, 64)
           if (datalen.value == 64.to[Int]) {
-            sha_transform_preprocess(chunk_idx_transform)
+            if (i % NUM_CHUNKS == 0) {
+                sha_transform_preprocess(m_preprocess_0)
+            } else if (i % NUM_CHUNKS == 1) {
+                sha_transform_preprocess(m_preprocess_1)
+            } else if (i % NUM_CHUNKS == 2) {
+                sha_transform_preprocess(m_preprocess_2)
+            } else if (i % NUM_CHUNKS == 3) {
+                sha_transform_preprocess(m_preprocess_3)
+            } else {
+                assert(false)
+            }
             DBL_INT_ADD(512);
           }
           chunk_idx_transform :+= 1
@@ -171,8 +194,8 @@ import spatial.dsl._
         val pad_stop = if (datalen.value < 56) 56 else 64
         Foreach(datalen until pad_stop by 1){i => data(i) = if (i == datalen.value) 0x80.to[UInt8] else 0.to[UInt8]}
         if (datalen.value >= 56) {
-          populate_m_chunk(chunk_idx)
-          sha_transform_preprocess(chunk_idx)
+          populate_m_chunk(m_preprocess_0)
+          sha_transform_preprocess(m_preprocess_0)
           chunk_idx :+= 1
         }
 
@@ -186,8 +209,8 @@ import spatial.dsl._
         Pipe{data(57) = (bitlen(1) >> 16).to[UInt8]}
         Pipe{data(56) = (bitlen(1) >> 24).to[UInt8]}
         
-        populate_m_chunk(chunk_idx)
-        sha_transform_preprocess(chunk_idx)
+        populate_m_chunk(m_preprocess_0)
+        sha_transform_preprocess(m_preprocess_0)
 
         // Foreach(8 by 1){i => println(" " + state(i))}
 
