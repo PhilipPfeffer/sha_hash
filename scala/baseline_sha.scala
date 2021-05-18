@@ -2,14 +2,14 @@ package spatial.tests.apps
 
 import spatial.dsl._
 
-
-@spatial object SHA_PREPROCESSING extends SpatialApp {
+@spatial object SHA_BASELINE extends SpatialApp {
 
   type ULong = FixPt[FALSE, _32, _0]
   type UInt8 = FixPt[FALSE, _8, _0]
 
   def main(args: Array[String]): Unit = {
     // Setup off-chip data
+
     val raw_text = args(0)
     val data_text_int = raw_text.map[U8]{c => c}
     val data_text = Array.tabulate(data_text_int.length){i => data_text_int(i).to[UInt8]}
@@ -22,11 +22,10 @@ import spatial.dsl._
     setMem(text_dram, data_text)
 
     Accel{
+
       // Init
       val datalen = Reg[Int](0)
       val bitlen = RegFile[ULong](2, List(0.to[ULong],0.to[ULong]))
-      
-      // Initial hash values that will be put in h0-h7
       val state = RegFile[ULong](8, List(0x6a09e667L.to[ULong],0xbb67ae85L.to[ULong],0x3c6ef372L.to[ULong],0xa54ff53aL.to[ULong],
         0x510e527fL.to[ULong],0x9b05688cL.to[ULong],0x1f83d9abL.to[ULong],0x5be0cd19L.to[ULong])
       )
@@ -43,8 +42,6 @@ import spatial.dsl._
       )
 
       val data = SRAM[UInt8](64)
-      val NUM_CHUNKS = 8
-      val m_preprocess = SRAM[ULong](NUM_CHUNKS, 64)
 
       def SHFR(x: ULong, y: Int): ULong = {
         val tmp = Reg[ULong](0)
@@ -89,7 +86,21 @@ import spatial.dsl._
         ( x >> 6 | x << (32-6) ) ^ ( x >> 11 | x << (32-11) ) ^ ( x >> 25 | x << (32-25) )
       }
 
-      def sha_transform_preprocess(chunk_idx: I32): Unit = {
+      def sha_transform(): Unit = {
+        val m = SRAM[ULong](64)
+        Foreach(0 until 64 by 1){i =>
+          if ( i < 16 ) {
+            val j = 4*i
+            // println(" m(" + i + ") = " + {(data(j).as[ULong] << 24) | (data(j+1).as[ULong] << 16) | (data(j+2).as[ULong] << 8) | (data(j+3).as[ULong])})
+            m(i) = (data(j).as[ULong] << 24) | (data(j+1).as[ULong] << 16) | (data(j+2).as[ULong] << 8) | (data(j+3).as[ULong])
+          } else {
+            // println(" m(" + i + ") = " + SIG1(m(i-2)) + " " + m(i-7) + " " + SIG0(m(i-15)) + " " + m(i-16))
+            m(i) = SIG1(m(i-2)) + m(i-7) + SIG0(m(i-15)) + m(i-16)
+          }
+          // val j = 4*i
+          // m(i) = if (i < 16) {(data(j).as[ULong] << 24) | (data(j+1).as[ULong] << 16) | (data(j+2).as[ULong] << 8) | (data(j+3).as[ULong])}
+          //        else {SIG1(m(i-2)) + m(i-7) + SIG0(m(i-15)) + m(i-16)}
+        }
         val A = Reg[ULong]
         val B = Reg[ULong]
         val C = Reg[ULong]
@@ -109,7 +120,7 @@ import spatial.dsl._
         H := state(7)
 
         Foreach(64 by 1){ i =>
-          val tmp1 = H + EP1(E) + CH(E,F,G) + K_LUT(i) + m_preprocess(chunk_idx, i)
+          val tmp1 = H + EP1(E) + CH(E,F,G) + K_LUT(i) + m(i)
           val tmp2 = EP0(A) + MAJ(A,B,C)
           // println(" " + i + " : " + A.value + " " + B.value + " " +
           //   C.value + " " + D.value + " " + E.value + " " + F.value + " " + G.value + " " + H.value)
@@ -124,55 +135,41 @@ import spatial.dsl._
 
       }
 
-
-      // Populates a chunk of the m array (up to 512 bits)
-      def populate_m_chunk(chunk_idx: I32): Unit = {
-        Foreach(0 until 64 by 1){ byte_idx =>
-          if ( byte_idx < 16 ) {
-            val j = byte_idx << 2
-            // println(" m_preprocess(" + chunk_idx + ", " + byte_idx + ") = " + {(data(j).as[ULong] << 24) | (data(j+1).as[ULong] << 16) | (data(j+2).as[ULong] << 8) | (data(j+3).as[ULong])})
-            m_preprocess(chunk_idx, byte_idx) = (data(j).as[ULong] << 24) | (data(j+1).as[ULong] << 16) | (data(j+2).as[ULong] << 8) | (data(j+3).as[ULong])
-          } else {
-            // println(" m_preprocess(" + chunk_idx + ", " + byte_idx + ") = " + SIG1(m_preprocess(chunk_idx, byte_idx-2)) + " " + m_preprocess(chunk_idx, byte_idx-7) + " " + SIG0(m_preprocess(chunk_idx, byte_idx-15)) + " " + m_preprocess(chunk_idx, byte_idx-16))
-            m_preprocess(chunk_idx, byte_idx) = SIG1(m_preprocess(chunk_idx, byte_idx-2)) + m_preprocess(chunk_idx, byte_idx-7) + SIG0(m_preprocess(chunk_idx, byte_idx-15)) + m_preprocess(chunk_idx, byte_idx-16)
-          }
-        }
-      }
-
-
       def SHA256(): Unit = {
-        // PREPROCESSING
-        // Process the message in successive 512-bit chunks:
-        Foreach(0 until len.value by 64 par NUM_CHUNKS) { i =>
+        // Init
+        Pipe{
+          bitlen(0) = 0.to[ULong]
+          bitlen(1) = 0.to[ULong]
+          state(0) = 0x6a09e667L.to[ULong]
+          state(1) = 0xbb67ae85L.to[ULong]
+          state(2) = 0x3c6ef372L.to[ULong]
+          state(3) = 0xa54ff53aL.to[ULong]
+          state(4) = 0x510e527fL.to[ULong]
+          state(5) = 0x9b05688cL.to[ULong]
+          state(6) = 0x1f83d9abL.to[ULong]
+          state(7) = 0x5be0cd19L.to[ULong]
+          // bitlen.reset
+          // state.reset
+        }
+
+        // Update
+        Sequential.Foreach(0 until len.value by 64 par 1) { i =>
           datalen := min(len.value - i, 64)
           // println(" datalen " + datalen.value + " and i " + i + " and len " + len.value)
           data load text_dram(i::i+datalen.value)
-          
           if (datalen.value == 64.to[Int]) {
-            populate_m_chunk(i/64)
+            // println("doing this " + datalen.value)
+            sha_transform()
+            DBL_INT_ADD(512);
           }
         }
 
-        // HASHING
-        val chunk_idx_transform = Reg[Int](0)
-        Sequential.Foreach(0 until len.value by 64 par 1) { i =>
-          datalen := min(len.value - i, 64)
-          if (datalen.value == 64.to[Int]) {
-            sha_transform_preprocess(chunk_idx_transform)
-            DBL_INT_ADD(512);
-          }
-          chunk_idx_transform :+= 1
-        }
-        
-        println(floor(len.value/64))
-        val chunk_idx = Reg[Int](floor(len.value / 64))
-        // Process the final chunk if the message wasn't divisible into 512-bit chunks
+        // Final
         val pad_stop = if (datalen.value < 56) 56 else 64
         Foreach(datalen until pad_stop by 1){i => data(i) = if (i == datalen.value) 0x80.to[UInt8] else 0.to[UInt8]}
         if (datalen.value >= 56) {
-          populate_m_chunk(chunk_idx)
-          sha_transform_preprocess(chunk_idx)
-          chunk_idx :+= 1
+          sha_transform()
+          Foreach(56 by 1){i => data(i) = 0}
         }
 
         DBL_INT_ADD(datalen.value.to[ULong] * 8.to[ULong])
@@ -184,9 +181,7 @@ import spatial.dsl._
         Pipe{data(58) = (bitlen(1) >> 8).to[UInt8]}
         Pipe{data(57) = (bitlen(1) >> 16).to[UInt8]}
         Pipe{data(56) = (bitlen(1) >> 24).to[UInt8]}
-        
-        populate_m_chunk(chunk_idx)
-        sha_transform_preprocess(chunk_idx)
+        sha_transform()
 
         // Foreach(8 by 1){i => println(" " + state(i))}
 
@@ -203,7 +198,8 @@ import spatial.dsl._
 
       }
 
-      SHA256()
+
+      SHA256()  
       hash_dram store hash
     }
 
@@ -214,7 +210,7 @@ import spatial.dsl._
     printArray(hashed_result, "Got: ")
 
     val cksum = hashed_gold.zip(hashed_result){_==_}.reduce{_&&_}
-    println("PASS: " + cksum + " (SHA PREPROCESS)")
+    println("PASS: " + cksum + " (SHA_BASELINE)")
     assert(cksum)
   }
 }
