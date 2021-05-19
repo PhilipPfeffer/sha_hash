@@ -44,10 +44,10 @@ import spatial.dsl._
 
       val data = SRAM[UInt8](64)
       val NUM_CHUNKS = 4
-      val m_preprocess_0 = SRAM[ULong](64).conflictable
-      val m_preprocess_1 = SRAM[ULong](64).conflictable
-      val m_preprocess_2 = SRAM[ULong](64).conflictable
-      val m_preprocess_3 = SRAM[ULong](64).conflictable
+      val m_preprocess_0 = SRAM[ULong](64)
+      val m_preprocess_1 = SRAM[ULong](64)
+      val m_preprocess_2 = SRAM[ULong](64)
+      val m_preprocess_3 = SRAM[ULong](64)
 
       def SHFR(x: ULong, y: Int): ULong = {
         val tmp = Reg[ULong](0)
@@ -129,14 +129,14 @@ import spatial.dsl._
 
 
       // Populates a chunk of the m array (up to 512 bits)
-      def populate_m_chunk(m_preprocess: SRAM1[ULong]): Unit = {
-        Foreach(0 until 64 by 1){ byte_idx =>
+      def populate_m_chunk(m_preprocess: SRAM1[ULong], chunk_data: SRAM1[UInt8]): Unit = {
+        Sequential.Foreach(0 until 64 by 1){ byte_idx =>
           if ( byte_idx < 16 ) {
             val j = byte_idx << 2
-            // println(" m_preprocess(" + chunk_idx + ", " + byte_idx + ") = " + {(data(j).as[ULong] << 24) | (data(j+1).as[ULong] << 16) | (data(j+2).as[ULong] << 8) | (data(j+3).as[ULong])})
-            m_preprocess(byte_idx) = (data(j).as[ULong] << 24) | (data(j+1).as[ULong] << 16) | (data(j+2).as[ULong] << 8) | (data(j+3).as[ULong])
+            // println(" m_preprocess(" + byte_idx + ") = " + {(chunk_data(j).as[ULong] << 24) | (chunk_data(j+1).as[ULong] << 16) | (chunk_data(j+2).as[ULong] << 8) | (chunk_data(j+3).as[ULong])})
+            m_preprocess(byte_idx) = (chunk_data(j).as[ULong] << 24) | (chunk_data(j+1).as[ULong] << 16) | (chunk_data(j+2).as[ULong] << 8) | (chunk_data(j+3).as[ULong])
           } else {
-            // println(" m_preprocess(" + chunk_idx + ", " + byte_idx + ") = " + SIG1(m_preprocess(chunk_idx, byte_idx-2)) + " " + m_preprocess(chunk_idx, byte_idx-7) + " " + SIG0(m_preprocess(chunk_idx, byte_idx-15)) + " " + m_preprocess(chunk_idx, byte_idx-16))
+            // println(" m_preprocess(" + byte_idx + ") = " + SIG1(m_preprocess(byte_idx-2)) + " " + m_preprocess(byte_idx-7) + " " + SIG0(m_preprocess(byte_idx-15)) + " " + m_preprocess(byte_idx-16))
             m_preprocess(byte_idx) = SIG1(m_preprocess(byte_idx-2)) + m_preprocess(byte_idx-7) + SIG0(m_preprocess(byte_idx-15)) + m_preprocess(byte_idx-16)
           }
         }
@@ -147,54 +147,55 @@ import spatial.dsl._
         // PREPROCESSING
         // Process the message in successive 512-bit chunks:
         Foreach(0 until len.value by 64 par NUM_CHUNKS) { i =>
-          datalen := min(len.value - i, 64)
+          val datalen_pre = Reg[Int](0)
+          datalen_pre := min(len.value - i, 64)
           // println(" datalen " + datalen.value + " and i " + i + " and len " + len.value)
-          data load text_dram(i::i+datalen.value)
           
-          if (datalen.value == 64.to[Int]) {
-            println("here")
-            if (i % NUM_CHUNKS == 0) {
-                populate_m_chunk(m_preprocess_0)
-            } else if (i % NUM_CHUNKS == 1) {
-                populate_m_chunk(m_preprocess_1)
-            } else if (i % NUM_CHUNKS == 2) {
-                populate_m_chunk(m_preprocess_2)
-            } else if (i % NUM_CHUNKS == 3) {
-                populate_m_chunk(m_preprocess_3)
+          if (datalen_pre.value == 64.to[Int]) {
+            val data_pre = SRAM[UInt8](64)
+            data_pre load text_dram(i::i+datalen_pre.value)
+            val chunk_idx_internal = i/64
+            if (chunk_idx_internal % NUM_CHUNKS == 0) {
+              populate_m_chunk(m_preprocess_0, data_pre)
+            } else if (chunk_idx_internal % NUM_CHUNKS == 1) {
+              populate_m_chunk(m_preprocess_1, data_pre)
+            } else if (chunk_idx_internal % NUM_CHUNKS == 2) {
+              populate_m_chunk(m_preprocess_2, data_pre)
+            } else if (chunk_idx_internal % NUM_CHUNKS == 3) {
+              populate_m_chunk(m_preprocess_3, data_pre)
             } else {
-                assert(false)
+              assert(false)
             }
           }
         }
 
         // HASHING
-        val chunk_idx_transform = Reg[Int](0)
         Sequential.Foreach(0 until len.value by 64 par 1) { i =>
           datalen := min(len.value - i, 64)
           if (datalen.value == 64.to[Int]) {
-            if (i % NUM_CHUNKS == 0) {
-                sha_transform_preprocess(m_preprocess_0)
-            } else if (i % NUM_CHUNKS == 1) {
-                sha_transform_preprocess(m_preprocess_1)
-            } else if (i % NUM_CHUNKS == 2) {
-                sha_transform_preprocess(m_preprocess_2)
-            } else if (i % NUM_CHUNKS == 3) {
-                sha_transform_preprocess(m_preprocess_3)
+            val chunk_idx_internal = i/64
+            if (chunk_idx_internal % NUM_CHUNKS == 0) {
+              sha_transform_preprocess(m_preprocess_0)
+            } else if (chunk_idx_internal % NUM_CHUNKS == 1) {
+              sha_transform_preprocess(m_preprocess_1)
+            } else if (chunk_idx_internal % NUM_CHUNKS == 2) {
+              sha_transform_preprocess(m_preprocess_2)
+            } else if (chunk_idx_internal % NUM_CHUNKS == 3) {
+              sha_transform_preprocess(m_preprocess_3)
             } else {
-                assert(false)
+              assert(false)
             }
             DBL_INT_ADD(512);
           }
-          chunk_idx_transform :+= 1
         }
         
-        println(floor(len.value/64))
         val chunk_idx = Reg[Int](floor(len.value / 64))
+        data load text_dram(chunk_idx*64::chunk_idx*64+datalen.value)
         // Process the final chunk if the message wasn't divisible into 512-bit chunks
         val pad_stop = if (datalen.value < 56) 56 else 64
         Foreach(datalen until pad_stop by 1){i => data(i) = if (i == datalen.value) 0x80.to[UInt8] else 0.to[UInt8]}
         if (datalen.value >= 56) {
-          populate_m_chunk(m_preprocess_0)
+          populate_m_chunk(m_preprocess_0, data)
           sha_transform_preprocess(m_preprocess_0)
           chunk_idx :+= 1
         }
@@ -209,7 +210,7 @@ import spatial.dsl._
         Pipe{data(57) = (bitlen(1) >> 16).to[UInt8]}
         Pipe{data(56) = (bitlen(1) >> 24).to[UInt8]}
         
-        populate_m_chunk(m_preprocess_0)
+        populate_m_chunk(m_preprocess_0, data)
         sha_transform_preprocess(m_preprocess_0)
 
         // Foreach(8 by 1){i => println(" " + state(i))}
@@ -238,7 +239,7 @@ import spatial.dsl._
     printArray(hashed_result, "Got: ")
 
     val cksum = hashed_gold.zip(hashed_result){_==_}.reduce{_&&_}
-    println("PASS: " + cksum + " (SHA PREPROCESS)")
+    println("PASS: " + cksum + " (SHA PREPROCESS UNROLLED)")
     assert(cksum)
   }
 }
