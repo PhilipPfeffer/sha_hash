@@ -140,8 +140,9 @@ import spatial.dsl._
 
       def SHA256(): Unit = {
         // PREPROCESSING
+        // println("Begin preprocessing")
         Sequential.Foreach(0 until len.value by 64*NUM_CHUNKS) { base =>
-          println("here")
+          // println("Round " + base/(64*NUM_CHUNKS))
           // Process the message in successive 512-bit chunks:
           Foreach(0 until 64*NUM_CHUNKS by 64 par NUM_CHUNKS) { i =>
             val byte_idx = base + i
@@ -149,7 +150,11 @@ import spatial.dsl._
               val datalen_preprocess = min(len.value - byte_idx, 64)
               val chunk_idx_preprocess = i/64
               
+              // println("chunk_idx_preprocess: " + chunk_idx_preprocess)
+              // println("datalen_preprocess: " + datalen_preprocess)
               if (datalen_preprocess == 64.to[Int]) {
+                // println("byte_idx: " + byte_idx)
+                // println("i: " + i)
                 data(i::i+datalen_preprocess) load text_dram(byte_idx::byte_idx+datalen_preprocess)
                 populate_m_chunk(chunk_idx_preprocess)
               }
@@ -163,6 +168,8 @@ import spatial.dsl._
               val chunk_idx_transform = i/64
               datalen := min(len.value - byte_idx, 64)
               
+              // println("chunk_idx_transform: " + chunk_idx_transform)
+              // println("datalen: " + datalen.value)
               if (datalen.value == 64.to[Int]) {
                 sha_transform_preprocess(chunk_idx_transform)
                 DBL_INT_ADD(512);
@@ -171,16 +178,20 @@ import spatial.dsl._
           }
         }
         
-        val chunk_idx = Reg[Int](floor(len.value / 64))
-        datalen := len.value - 64*chunk_idx
-        data(chunk_idx*64::chunk_idx*64+datalen.value) load text_dram(chunk_idx*64::chunk_idx*64+datalen.value)
+        val end_chunk_byte_start = floor(len.value / 64) * 64
+        val chunk_idx = Reg[Int](0)
+        datalen := len.value - end_chunk_byte_start
+        // println("end_chunk_byte_start: " + end_chunk_byte_start)
+        // println("datalen: " + datalen.value)
+        data(chunk_idx::chunk_idx+datalen.value) load text_dram(end_chunk_byte_start::end_chunk_byte_start+datalen.value)
         // Process the final chunk if the message wasn't divisible into 512-bit chunks
         val pad_stop = if (datalen.value < 56) 56 else 64
         Foreach(datalen until pad_stop by 1){i => data(chunk_idx*64 + i) = if (i == datalen.value) 0x80.to[UInt8] else 0.to[UInt8]}
         if (datalen.value >= 56) {
           populate_m_chunk(chunk_idx)
           sha_transform_preprocess(chunk_idx)
-          chunk_idx :+= 1
+          // chunk_idx :+= 1
+          Foreach(56 by 1){i => data(i) = 0}
         }
 
         DBL_INT_ADD(datalen.value.to[ULong] * 8.to[ULong])
@@ -220,8 +231,10 @@ import spatial.dsl._
     // val hashed_gold = Array[UInt8](56.to[UInt8], 241.to[UInt8], 171.to[UInt8], 222.to[UInt8], 203.to[UInt8], 126.to[UInt8], 0.to[UInt8], 26.to[UInt8], 180.to[UInt8], 3.to[UInt8], 174.to[UInt8], 205.to[UInt8], 136.to[UInt8], 90.to[UInt8], 1.to[UInt8], 13.to[UInt8], 90.to[UInt8], 37.to[UInt8], 64.to[UInt8], 84.to[UInt8], 228.to[UInt8], 121.to[UInt8], 211.to[UInt8], 53.to[UInt8], 39.to[UInt8], 62.to[UInt8], 170.to[UInt8], 28.to[UInt8], 189.to[UInt8], 214.to[UInt8], 38.to[UInt8], 116.to[UInt8])
     // Input for this hash: 0100000081cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122bc7f5d74df2b9441a42a146950100000081cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122bc7f5d74df2b9441a42a146950100000081cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122bc7f5d74df2b9441a42a14695
     // val hashed_gold = Array[UInt8](39.to[UInt8], 179.to[UInt8], 231.to[UInt8], 53.to[UInt8], 65.to[UInt8], 34.to[UInt8], 88.to[UInt8], 63.to[UInt8], 235.to[UInt8], 39.to[UInt8], 249.to[UInt8], 180.to[UInt8], 234.to[UInt8], 174.to[UInt8], 48.to[UInt8], 12.to[UInt8], 240.to[UInt8], 202.to[UInt8], 142.to[UInt8], 175.to[UInt8], 196.to[UInt8], 69.to[UInt8], 89.to[UInt8], 1.to[UInt8], 62.to[UInt8], 189.to[UInt8], 72.to[UInt8], 187.to[UInt8], 229.to[UInt8], 211.to[UInt8], 251.to[UInt8], 8.to[UInt8])
+    // input = "0100000081cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122bc7f5d74df2b9441a42a146950100000081cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122bc7f5d74df2b9441a42a146950100000081cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122bc7f5d74df2b9441a42a146950100000081cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122bc7f5d74df2b9441a42a1"
+    val hashed_gold = Array[UInt8](148.to[UInt8], 93.to[UInt8], 186.to[UInt8], 114.to[UInt8], 177.to[UInt8], 232.to[UInt8], 120.to[UInt8], 47.to[UInt8], 124.to[UInt8], 31.to[UInt8], 183.to[UInt8], 235.to[UInt8], 146.to[UInt8], 229.to[UInt8], 123.to[UInt8], 17.to[UInt8], 101.to[UInt8], 125.to[UInt8], 120.to[UInt8], 255.to[UInt8], 103.to[UInt8], 220.to[UInt8], 141.to[UInt8], 14.to[UInt8], 89.to[UInt8], 46.to[UInt8], 1.to[UInt8], 145.to[UInt8], 99.to[UInt8], 181.to[UInt8], 252.to[UInt8], 84.to[UInt8])
     // Input for this hash: 0100000081cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122bc7f5d74df2b9441a42a146950100000081cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122bc7f5d74df2b9441a42a146950100000081cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122bc7f5d74df2b9441a42a146950100000081cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122bc7f5d74df2b9441a42a14695
-    val hashed_gold = Array[UInt8](84.to[UInt8], 250.to[UInt8], 27.to[UInt8], 231.to[UInt8], 95.to[UInt8], 140.to[UInt8], 37.to[UInt8], 74.to[UInt8], 103.to[UInt8], 180.to[UInt8], 219.to[UInt8], 94.to[UInt8], 253.to[UInt8], 40.to[UInt8], 24.to[UInt8], 247.to[UInt8], 71.to[UInt8], 86.to[UInt8], 29.to[UInt8], 227.to[UInt8], 36.to[UInt8], 227.to[UInt8], 72.to[UInt8], 30.to[UInt8], 80.to[UInt8], 163.to[UInt8], 163.to[UInt8], 79.to[UInt8], 207.to[UInt8], 50.to[UInt8], 180.to[UInt8], 239.to[UInt8])
+    // val hashed_gold = Array[UInt8](84.to[UInt8], 250.to[UInt8], 27.to[UInt8], 231.to[UInt8], 95.to[UInt8], 140.to[UInt8], 37.to[UInt8], 74.to[UInt8], 103.to[UInt8], 180.to[UInt8], 219.to[UInt8], 94.to[UInt8], 253.to[UInt8], 40.to[UInt8], 24.to[UInt8], 247.to[UInt8], 71.to[UInt8], 86.to[UInt8], 29.to[UInt8], 227.to[UInt8], 36.to[UInt8], 227.to[UInt8], 72.to[UInt8], 30.to[UInt8], 80.to[UInt8], 163.to[UInt8], 163.to[UInt8], 79.to[UInt8], 207.to[UInt8], 50.to[UInt8], 180.to[UInt8], 239.to[UInt8])
     // Input for this hash: 0100000081cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122bc7f5d74df2b9441a42a146950100000081cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122bc7f5d74df2b9441a42a146950100000081cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122bc7f5d74df2b9441a42a146950100000081cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122bc7f5d74df2b9441a42a146950100000081cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122bc7f5d74df2b9441a42a146950100000081cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122bc7f5d74df2b9441a42a14695
     // val hashed_gold = Array[UInt8](21.to[UInt8], 34.to[UInt8], 64.to[UInt8], 225.to[UInt8], 29.to[UInt8], 149.to[UInt8], 163.to[UInt8], 6.to[UInt8], 143.to[UInt8], 217.to[UInt8], 7.to[UInt8], 236.to[UInt8], 19.to[UInt8], 17.to[UInt8], 171.to[UInt8], 62.to[UInt8], 243.to[UInt8], 148.to[UInt8], 9.to[UInt8], 253.to[UInt8], 87.to[UInt8], 144.to[UInt8], 118.to[UInt8], 209.to[UInt8], 136.to[UInt8], 242.to[UInt8], 143.to[UInt8], 73.to[UInt8], 153.to[UInt8], 133.to[UInt8], 230.to[UInt8], 82.to[UInt8])
     printArray(hashed_gold, "Expected: ")
