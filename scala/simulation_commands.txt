@@ -1,6 +1,8 @@
 -----
 SHA
 -----
+bin/spatial SHA_PREPROCESSING --sim --vv
+
 
 cd ~/spatial
 bin/spatial SHA_PREPROCESSING --sim

@@ -25,9 +25,9 @@ import spatial.dsl._
       // Init
       val datalen = Reg[Int](0)
       val bitlen = RegFile[ULong](2, List(0.to[ULong],0.to[ULong]))
-      val NUM_CHUNKS = 8
+      val NUM_CHUNKS = 4
       val data = SRAM[UInt8](NUM_CHUNKS * 64)
-      val m_preprocess = SRAM[ULong](NUM_CHUNKS, 64).conflictable
+      val m_preprocess = SRAM[ULong](NUM_CHUNKS, 64)
 
       // Initial hash values that will be put in h0-h7
       val state = RegFile[ULong](8, List(0x6a09e667L.to[ULong],0xbb67ae85L.to[ULong],0x3c6ef372L.to[ULong],0xa54ff53aL.to[ULong],
@@ -123,6 +123,21 @@ import spatial.dsl._
 
       }
 
+      // Populates a chunk of the m array (up to 512 bits * NUM_CHUNKS)
+      def populate_m_big_chunk(num_chunks: Int): Unit = {
+        Foreach(0 until num_chunks.as[I32] by 1 par NUM_CHUNKS) { chunk_idx =>
+          Sequential.Foreach(0 until 64 by 1){ byte_idx =>
+            if ( byte_idx < 16 ) {
+              val j = byte_idx << 2
+              // println(" m_preprocess(" + chunk_idx + ", " + byte_idx + ") = " + {(data(chunk_idx*64 + j).as[ULong] << 24) | (data(chunk_idx*64 + j+1).as[ULong] << 16) | (data(chunk_idx*64 + j+2).as[ULong] << 8) | (data(chunk_idx*64 + j+3).as[ULong])})
+              m_preprocess(chunk_idx, byte_idx) = (data(chunk_idx*64 + j).as[ULong] << 24) | (data(chunk_idx*64 + j+1).as[ULong] << 16) | (data(chunk_idx*64 + j+2).as[ULong] << 8) | (data(chunk_idx*64 + j+3).as[ULong])
+            } else {
+              // println(" m_preprocess(" + chunk_idx + ", " + byte_idx + ") = " + SIG1(m_preprocess(chunk_idx, byte_idx-2)) + " " + m_preprocess(chunk_idx, byte_idx-7) + " " + SIG0(m_preprocess(chunk_idx, byte_idx-15)) + " " + m_preprocess(chunk_idx, byte_idx-16))
+              m_preprocess(chunk_idx, byte_idx) = SIG1(m_preprocess(chunk_idx, byte_idx-2)) + m_preprocess(chunk_idx, byte_idx-7) + SIG0(m_preprocess(chunk_idx, byte_idx-15)) + m_preprocess(chunk_idx, byte_idx-16)
+            }
+          }
+        }
+      }
 
       // Populates a chunk of the m array (up to 512 bits)
       def populate_m_chunk(chunk_idx: I32): Unit = {
@@ -144,22 +159,28 @@ import spatial.dsl._
         Sequential.Foreach(0 until len.value by 64*NUM_CHUNKS) { base =>
           // println("Round " + base/(64*NUM_CHUNKS))
           // Process the message in successive 512-bit chunks:
-          Foreach(0 until 64*NUM_CHUNKS by 64 par NUM_CHUNKS) { i =>
-            val byte_idx = base + i
-            if (byte_idx <= len.value) {
-              val datalen_preprocess = min(len.value - byte_idx, 64)
-              val chunk_idx_preprocess = i/64
+          // Foreach(0 until 64*NUM_CHUNKS by 64 par NUM_CHUNKS) { i =>
+          //   val byte_idx = base + i
+          //   if (byte_idx <= len.value) {
+          //     val datalen_preprocess = min(len.value - byte_idx, 64)
+          //     val chunk_idx_preprocess = i/64
               
-              // println("chunk_idx_preprocess: " + chunk_idx_preprocess)
-              // println("datalen_preprocess: " + datalen_preprocess)
-              if (datalen_preprocess == 64.to[Int]) {
-                // println("byte_idx: " + byte_idx)
-                // println("i: " + i)
-                data(i::i+datalen_preprocess) load text_dram(byte_idx::byte_idx+datalen_preprocess)
-                populate_m_chunk(chunk_idx_preprocess)
-              }
-            }
-          }
+          //     // println("chunk_idx_preprocess: " + chunk_idx_preprocess)
+          //     // println("datalen_preprocess: " + datalen_preprocess)
+          //     if (datalen_preprocess == 64.to[Int]) {
+          //       // println("byte_idx: " + byte_idx)
+          //       // println("i: " + i)
+          //       data(i::i+datalen_preprocess) load text_dram(byte_idx::byte_idx+datalen_preprocess)
+          //       populate_m_chunk(chunk_idx_preprocess)
+          //     }
+          //   }
+          // }
+          val data_chunk_size = min(floor((len.value-base)/64)*64, 64*NUM_CHUNKS)
+          // if (base + data_chunk_size <= len.value) {
+          data(0::data_chunk_size) load text_dram(base::base+data_chunk_size)
+          populate_m_big_chunk((data_chunk_size/64).as[Int])
+          // }
+
 
           // HASHING
           Sequential.Foreach(0 until 64*NUM_CHUNKS by 64 par 1) { i =>
