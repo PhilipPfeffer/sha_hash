@@ -156,32 +156,10 @@ import spatial.dsl._
 
       def SHA256(): Unit = {
         // PREPROCESSING
-        // println("Begin preprocessing")
         Sequential.Foreach(0 until len.value by 64*NUM_CHUNKS) { base =>
-          // println("Round " + base/(64*NUM_CHUNKS))
-          // Process the message in successive 512-bit chunks:
-          // Foreach(0 until 64*NUM_CHUNKS by 64 par NUM_CHUNKS) { i =>
-          //   val byte_idx = base + i
-          //   if (byte_idx <= len.value) {
-          //     val datalen_preprocess = min(len.value - byte_idx, 64)
-          //     val chunk_idx_preprocess = i/64
-              
-          //     // println("chunk_idx_preprocess: " + chunk_idx_preprocess)
-          //     // println("datalen_preprocess: " + datalen_preprocess)
-          //     if (datalen_preprocess == 64.to[Int]) {
-          //       // println("byte_idx: " + byte_idx)
-          //       // println("i: " + i)
-          //       data(i::i+datalen_preprocess) load text_dram(byte_idx::byte_idx+datalen_preprocess)
-          //       populate_m_chunk(chunk_idx_preprocess)
-          //     }
-          //   }
-          // }
           val data_chunk_size = min(floor((len.value-base)/64)*64, 64*NUM_CHUNKS)
-          // if (base + data_chunk_size <= len.value) {
           data(0::data_chunk_size) load text_dram(base::base+data_chunk_size)
           populate_m_big_chunk((data_chunk_size/64).as[Int])
-          // }
-
 
           // HASHING
           Sequential.Foreach(0 until 64*NUM_CHUNKS by 64 par 1) { i =>
@@ -189,9 +167,7 @@ import spatial.dsl._
             if (byte_idx <= len.value) {
               val chunk_idx_transform = i/64
               datalen := min(len.value - byte_idx, 64)
-              
-              // println("chunk_idx_transform: " + chunk_idx_transform)
-              // println("datalen: " + datalen.value)
+
               if (datalen.value == 64.to[Int]) {
                 sha_transform_preprocess(chunk_idx_transform)
                 DBL_INT_ADD(512);
@@ -200,19 +176,16 @@ import spatial.dsl._
           }
         }
         
+        // Process the final chunk if the message wasn't divisible into 512-bit chunks
         val end_chunk_byte_start = floor(len.value / 64) * 64
         val chunk_idx = Reg[Int](0)
         datalen := len.value - end_chunk_byte_start
-        // println("end_chunk_byte_start: " + end_chunk_byte_start)
-        // println("datalen: " + datalen.value)
         data(chunk_idx::chunk_idx+datalen.value) load text_dram(end_chunk_byte_start::end_chunk_byte_start+datalen.value)
-        // Process the final chunk if the message wasn't divisible into 512-bit chunks
         val pad_stop = if (datalen.value < 56) 56 else 64
         Foreach(datalen until pad_stop by 1){i => data(chunk_idx*64 + i) = if (i == datalen.value) 0x80.to[UInt8] else 0.to[UInt8]}
         if (datalen.value >= 56) {
           populate_m_chunk(chunk_idx)
           sha_transform_preprocess(chunk_idx)
-          // chunk_idx :+= 1
           Foreach(56 by 1){i => data(i) = 0}
         }
 
@@ -229,8 +202,6 @@ import spatial.dsl._
         populate_m_chunk(chunk_idx)
         sha_transform_preprocess(chunk_idx)
 
-        // Foreach(8 by 1){i => println(" " + state(i))}
-
         Sequential.Foreach(4 by 1){ i =>
           hash(i)    = (SHFR(state(0), (24-i*8))).bits(7::0).as[UInt8]
           hash(i+4)  = (SHFR(state(1), (24-i*8))).bits(7::0).as[UInt8]
@@ -241,7 +212,6 @@ import spatial.dsl._
           hash(i+24) = (SHFR(state(6), (24-i*8))).bits(7::0).as[UInt8]
           hash(i+28) = (SHFR(state(7), (24-i*8))).bits(7::0).as[UInt8]
         }
-
       }
 
       SHA256()
