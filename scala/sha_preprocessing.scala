@@ -25,7 +25,7 @@ import spatial.dsl._
       // Init
       val datalen = Reg[Int](0)
       val bitlen = RegFile[ULong](2, List(0.to[ULong],0.to[ULong]))
-      val NUM_CHUNKS = 4
+      val NUM_CHUNKS = 8
       val data = SRAM[UInt8](NUM_CHUNKS * 64)
       val m_preprocess = SRAM[ULong](NUM_CHUNKS, 64)
 
@@ -106,6 +106,7 @@ import spatial.dsl._
         F := state(5)
         G := state(6)
         H := state(7)
+        
 
         Foreach(64 by 1){ i =>
           val tmp1 = H + EP1(E) + CH(E,F,G) + K_LUT(i) + m_preprocess(chunk_idx, i)
