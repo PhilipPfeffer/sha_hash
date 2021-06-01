@@ -4,12 +4,27 @@ In milestone 2, you have already developed your application in Spatial and verif
 
 ## Performance numbers
 In this section, please attach the resource utilization and the cycle count of your application when running on the board: 
+Resource utilisation for NUM_CHUNKS=8.
 ```bash 
-# Please attach your report here
-
++--------------------------------------+-------+-------+-----------+-------+
+|               Site Type              |  Used | Fixed | Available | Util% |
++--------------------------------------+-------+-------+-----------+-------+
+| Slice LUTs                           | 89554 |     0 |    218600 | 40.97 |
+|   LUT as Logic                       | 74362 |     0 |    218600 | 34.02 |
+|   LUT as Memory                      |  2403 |     0 |     70400 |  3.41 |
+|     LUT as Distributed RAM           |   400 |     0 |           |       |
+|     LUT as Shift Register            |  2003 |     0 |           |       |
+|   LUT used exclusively as pack-thrus | 12789 |     0 |    218600 |  5.85 |
+| Slice Registers                      | 57346 |     0 |    437200 | 13.12 |
+|   Register as Flip Flop              | 57346 |     0 |    437200 | 13.12 |
+|   Register as Latch                  |     0 |     0 |    437200 |  0.00 |
+|   Register as pack-thrus             |     0 |     0 |    437200 |  0.00 |
+| F7 Muxes                             |  1408 |     0 |    109300 |  1.29 |
+| F8 Muxes                             |   284 |     0 |     54650 |  0.52 |
++--------------------------------------+-------+-------+-----------+-------+
 ```
 
-## Useful Info (preliminary - to use for final report)
+## Performance Tuning
  NUM_CHUNKS |     Cycles        | % difference from previous
     1       | 18264 cycles/iter |          0%
     2       | 13873 cycles/iter |        -24.04%
@@ -38,4 +53,4 @@ The optimisation we have focused on for this milestone is the data preprocessing
 
 4. A futher optimisation we would like to try is to first load as much data into SRAM as possible (rather than 64*NUM_CHUNKS-bytes). 
     (i.e. Sequential.Foreach() { load biggest chunk possible; Sequential.Foreach(){ Foreach(... par NUM_CHUNKS){ preprocess }} })
-    We are limited on the parallelisation of the preprocessing by logic utilisation to NUM_CHUNKS=TODO. However, this does not limit the amount of data we can load. Therefore, we can load as much data as possible first, and then parallely process NUM_CHUNKS 64-byte chunks. This reduces the amount of time spent loading data into SRAM.
+    We are limited on the parallelisation of the preprocessing by logic utilisation to NUM_CHUNKS=8 (we have not been able to get NUM_CHUNKS=16 to work). However, this does not limit the amount of data we can load. Therefore, we can load as much data as possible first, and then parallely process NUM_CHUNKS 64-byte chunks. This reduces the amount of time spent loading data into SRAM.

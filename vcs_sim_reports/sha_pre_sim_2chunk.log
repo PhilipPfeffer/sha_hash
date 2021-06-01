@@ -1,0 +1,397 @@
+[WARNING]: DELITE_NUM_THREADS undefined, defaulting to 1
+Executing with 1 thread(s)
+FPGA PID is 5489
+
+Note-[RT_BS] Larger stack needed
+  Note: Bumping stack limit from 8192 to 8194 Kbytes.
+
+Chronologic VCS simulator copyright 1991-2015
+Contains Synopsys proprietary information.
+Compiler version K-2015.09-SP2-7_Full64; Runtime version K-2015.09-SP2-7_Full64;  May 31 23:56 2021
+[SIM] Sim process started!
+[SIM] VPD Waveforms DISABLED
+[SIM] VCD Waveforms DISABLED
+Sent cmd id 1 payload 1. Echoed cmd id 1 payload 1
+Connection successful!
+== Loading device model file '/home/philpfef/spatial/gen/SHA_PREPROCESSING/verilog/DRAMSim2/ini/DDR3_micron_32M_8B_x4_sg125.ini' == 
+== Loading system model file '/home/philpfef/spatial/gen/SHA_PREPROCESSING/verilog/DRAMSim2/spatial.dram.ini' == 
+===== MemorySystem 0 =====
+CH. 0 TOTAL_STORAGE : 4096MB | 2 Ranks | 16 Devices per rank
+===== MemorySystem 1 =====
+CH. 1 TOTAL_STORAGE : 4096MB | 2 Ranks | 16 Devices per rank
+===== MemorySystem 2 =====
+CH. 2 TOTAL_STORAGE : 4096MB | 2 Ranks | 16 Devices per rank
+===== MemorySystem 3 =====
+CH. 3 TOTAL_STORAGE : 4096MB | 2 Ranks | 16 Devices per rank
+[SIM] MALLOC(1024), returning 1000 - 1400 (0x7f0d446dd000 - 0x7f0d446dd400)
+[SIM] MALLOC(32), returning 2000 - 2020 (0x7f0d446dc000 - 0x7f0d446dc020)
+Total bytes written: 636
+[SIM] Received memcpy request to 0x1000 (0x7f0d446dd000), size 636
+Total bytes read: 636
+writing vis file to /home/philpfef/spatial/gen/SHA_PREPROCESSING/verilog/DRAMSim2/results/dramSimVCS/DDR3_micron_32M_8B_x4_sg125/4GB.4Ch.2R.scheme7.open_page.4096TQ.4096CQ.RtB.pRank.vis
+DRAMSim2 Clock Frequency =800000000Hz, CPU Clock Frequency=1000000000Hz
+	10000 cycles elapsed
+Design ran for 13876 cycles, status = 1
+ ******* Non-debug regs *******
+	R0: 00000001 (00000001)
+	R1: 00000001 (00000001)
+	R2: 00001000 (00004096)
+	R3: 00002000 (00008192)
+	R4: 0000027c (00000636)
+	R5: 00003631 (00013873)
+	R6: 00000001 (00000001)
+	R7: 0000261d (00009757)
+	R8: 00000001 (00000001)
+	R9: 00002618 (00009752)
+	R10: 00000001 (00000001)
+	R11: 00000019 (00000025)
+	R12: 00000005 (00000005)
+	R13: 000005fb (00001531)
+	R14: 00000005 (00000005)
+	R15: 000005e2 (00001506)
+	R16: 00000005 (00000005)
+	R17: 00000023 (00000035)
+	R18: 00000005 (00000005)
+	R19: 00000000 (00000000)
+	R20: 00000000 (00000000)
+	R21: 000005ce (00001486)
+	R22: 00000005 (00000005)
+	R23: 0000002d (00000045)
+	R24: 00000005 (00000005)
+	R25: 00000000 (00000000)
+	R26: 00000023 (00000035)
+	R27: 00000588 (00001416)
+	R28: 00000005 (00000005)
+	R29: 00000000 (00000000)
+	R30: 00000343 (00000835)
+	R31: 00000014 (00000020)
+	R32: 00000005 (00000005)
+	R33: 00000f7d (00003965)
+	R34: 00000005 (00000005)
+	R35: 00000f64 (00003940)
+	R36: 00000005 (00000005)
+	R37: 00000f4b (00003915)
+	R38: 00000005 (00000005)
+	R39: 00000c3c (00003132)
+	R40: 00000004 (00000004)
+	R41: 00001067 (00004199)
+	R42: 00000005 (00000005)
+	R43: 00000032 (00000050)
+	R44: 0000000a (00000010)
+	R45: 00001003 (00004099)
+	R46: 0000000a (00000010)
+	R47: 00000fdb (00004059)
+	R48: 0000000a (00000010)
+	R49: 0000003c (00000060)
+	R50: 0000000a (00000010)
+	R51: 00000f6d (00003949)
+	R52: 0000000a (00000010)
+	R53: 00000f42 (00003906)
+	R54: 00000009 (00000009)
+	R55: 00000036 (00000054)
+	R56: 00000009 (00000009)
+	R57: 00000dd1 (00003537)
+	R58: 00000009 (00000009)
+	R59: 0000006c (00000108)
+	R60: 00000009 (00000009)
+	R61: 0000003f (00000063)
+	R62: 00000009 (00000009)
+	R63: 00000036 (00000054)
+	R64: 00000009 (00000009)
+	R65: 00000048 (00000072)
+	R66: 00000009 (00000009)
+	R67: 00000000 (00000000)
+	R68: 00000000 (00000000)
+	R69: 00000048 (00000072)
+	R70: 00000009 (00000009)
+	R71: 0000003f (00000063)
+	R72: 00000009 (00000009)
+	R73: 00000003 (00000003)
+	R74: 00000001 (00000001)
+	R75: 00000000 (00000000)
+	R76: 00000000 (00000000)
+	R77: 00000004 (00000004)
+	R78: 00000001 (00000001)
+	R79: 00000005 (00000005)
+	R80: 00000001 (00000001)
+	R81: 000000fe (00000254)
+	R82: 00000001 (00000001)
+	R83: 000000f9 (00000249)
+	R84: 00000001 (00000001)
+	R85: 00000007 (00000007)
+	R86: 00000001 (00000001)
+	R87: 00000000 (00000000)
+	R88: 00000000 (00000000)
+	R89: 000000f5 (00000245)
+	R90: 00000001 (00000001)
+	R91: 00000009 (00000009)
+	R92: 00000001 (00000001)
+	R93: 00000000 (00000000)
+	R94: 00000007 (00000007)
+	R95: 000000e7 (00000231)
+	R96: 00000001 (00000001)
+	R97: 00000000 (00000000)
+	R98: 000000a6 (00000166)
+	R99: 00000004 (00000004)
+	R100: 00000001 (00000001)
+	R101: 0000000e (00000014)
+	R102: 00000001 (00000001)
+	R103: 00000009 (00000009)
+	R104: 00000001 (00000001)
+	R105: 00000004 (00000004)
+	R106: 00000001 (00000001)
+	R107: 0000052e (00001326)
+	R108: 00000001 (00000001)
+	R109: 00000529 (00001321)
+	R110: 00000001 (00000001)
+	R111: 00000525 (00001317)
+	R112: 00000001 (00000001)
+	R113: 00000355 (00000853)
+	R114: 00000001 (00000001)
+	R115: 00000350 (00000848)
+	R116: 00000001 (00000001)
+	R117: 00000006 (00000006)
+	R118: 00000001 (00000001)
+	R119: 00000189 (00000393)
+	R120: 00000001 (00000001)
+	R121: 00000041 (00000065)
+	R122: 00000001 (00000001)
+	R123: 00000007 (00000007)
+	R124: 00000001 (00000001)
+	R125: 0000003c (00000060)
+	R126: 00000001 (00000001)
+	R127: 00000000 (00000000)
+	R128: 00000000 (00000000)
+	R129: 00000006 (00000006)
+	R130: 00000001 (00000001)
+	R131: 00000008 (00000008)
+	R132: 00000001 (00000001)
+	R133: 00000000 (00000000)
+	R134: 00000000 (00000000)
+	R135: 00000008 (00000008)
+	R136: 00000001 (00000001)
+	R137: 00000005 (00000005)
+	R138: 00000001 (00000001)
+	R139: 00000006 (00000006)
+	R140: 00000001 (00000001)
+	R141: 00000006 (00000006)
+	R142: 00000001 (00000001)
+	R143: 00000006 (00000006)
+	R144: 00000001 (00000001)
+	R145: 00000006 (00000006)
+	R146: 00000001 (00000001)
+	R147: 00000006 (00000006)
+	R148: 00000001 (00000001)
+	R149: 00000006 (00000006)
+	R150: 00000001 (00000001)
+	R151: 00000006 (00000006)
+	R152: 00000001 (00000001)
+	R153: 00000006 (00000006)
+	R154: 00000001 (00000001)
+	R155: 00000355 (00000853)
+	R156: 00000001 (00000001)
+	R157: 00000350 (00000848)
+	R158: 00000001 (00000001)
+	R159: 00000006 (00000006)
+	R160: 00000001 (00000001)
+	R161: 00000189 (00000393)
+	R162: 00000001 (00000001)
+	R163: 00000007 (00000007)
+	R164: 00000001 (00000001)
+	R165: 000003a6 (00000934)
+	R166: 00000001 (00000001)
+	R167: 00000018 (00000024)
+	R168: 00000004 (00000004)
+	R169: 00000010 (00000016)
+	R170: 00000004 (00000004)
+	R171: 0000003c (00000060)
+	R172: 00000003 (00000003)
+	R173: 00000018 (00000024)
+	R174: 00000004 (00000004)
+	R175: 00000010 (00000016)
+	R176: 00000004 (00000004)
+	R177: 0000003c (00000060)
+	R178: 00000003 (00000003)
+	R179: 00000018 (00000024)
+	R180: 00000004 (00000004)
+	R181: 00000010 (00000016)
+	R182: 00000004 (00000004)
+	R183: 0000003c (00000060)
+	R184: 00000003 (00000003)
+	R185: 00000018 (00000024)
+	R186: 00000004 (00000004)
+	R187: 00000010 (00000016)
+	R188: 00000004 (00000004)
+	R189: 0000003c (00000060)
+	R190: 00000003 (00000003)
+	R191: 00000018 (00000024)
+	R192: 00000004 (00000004)
+	R193: 00000010 (00000016)
+	R194: 00000004 (00000004)
+	R195: 0000003c (00000060)
+	R196: 00000003 (00000003)
+	R197: 00000018 (00000024)
+	R198: 00000004 (00000004)
+	R199: 00000010 (00000016)
+	R200: 00000004 (00000004)
+	R201: 0000003c (00000060)
+	R202: 00000003 (00000003)
+	R203: 00000018 (00000024)
+	R204: 00000004 (00000004)
+	R205: 00000010 (00000016)
+	R206: 00000004 (00000004)
+	R207: 0000003c (00000060)
+	R208: 00000003 (00000003)
+	R209: 00000018 (00000024)
+	R210: 00000004 (00000004)
+	R211: 00000010 (00000016)
+	R212: 00000004 (00000004)
+	R213: 0000003c (00000060)
+	R214: 00000003 (00000003)
+	R215: 00000010 (00000016)
+	R216: 00000004 (00000004)
+	R217: 000000f6 (00000246)
+	R218: 00000001 (00000001)
+	R219: 000000f2 (00000242)
+	R220: 00000001 (00000001)
+	R221: 0000004f (00000079)
+	R222: 00000001 (00000001)
+	R223: 00000004 (00000004)
+	R224: 00000001 (00000001)
+	R225: 00000000 (00000000)
+	R226: 00000000 (00000000)
+	R227: 00000046 (00000070)
+	R228: 00000001 (00000001)
+	R229: 00000001 (00000001)
+	R230: 00000000 (00000000)
+	R231: 0000009e (00000158)
+	R232: 00000001 (00000001)
+	R233: 00000000 (00000000)
+	R234: 0000009c (00000156)
+Allocate mem of size 1024 at 0x1000
+Allocate mem of size 32 at 0x2000
+Hashing: 0100000081cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122bc7f5d74df2b9441a42a146950100000081cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122bc7f5d74df2b9441a42a146950100000081cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122bc7f5d74df2b9441a42a146950100000081cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122bc7f5d74df2b9441a42a1 (len: 636)
+Kernel done, test run time = 3 ms
+ArgIns: , ArgIOs:636
+  x3967 - 13873 (13873 / 1) [1 iters/parent execution]
+    x3959 - 9757 (9757 / 1) [1 iters/parent execution]
+      x3958 - 9752 (9752 / 1) [1 iters/parent execution]
+        x2039 - 5 (25 / 5) [5 iters/parent execution]
+        x3955 - 306 (1531 / 5) [5 iters/parent execution]
+          x2099 - 301 (1506 / 5) [1 iters/parent execution]
+            x2059 - 7 (35 / 5) [1 iters/parent execution] <# stalled: 0, #idle: 0>
+            x2098 - 297 (1486 / 5) [1 iters/parent execution]
+              x2072 - 9 (45 / 5) [1 iters/parent execution] <# stalled: 0, #idle: 35>
+              x2097 - 283 (1416 / 5) [1 iters/parent execution] <# stalled: 0, #idle: 835>
+          x2104 - 4 (20 / 5) [1 iters/parent execution]
+        x2343 - 793 (3965 / 5) [5 iters/parent execution]
+          x2342 - 788 (3940 / 5) [1 iters/parent execution]
+            x2228 - 783 (3915 / 5) [1 iters/parent execution]
+            x2341 - 783 (3132 / 4) [0 iters/parent execution]
+        x2633 - 839 (4199 / 5) [5 iters/parent execution]
+          x2360 - 5 (50 / 10) [2 iters/parent execution]
+          x2632 - 409 (4099 / 10) [2 iters/parent execution]
+            x2630 - 405 (4059 / 10) [1 iters/parent execution]
+              x2382 - 6 (60 / 10) [1 iters/parent execution]
+              x2628 - 394 (3949 / 10) [1 iters/parent execution]
+                x3957 - 434 (3906 / 9) [0 iters/parent execution]
+                  x2419 - 6 (54 / 9) [1 iters/parent execution]
+                  x2491 - 393 (3537 / 9) [1 iters/parent execution]
+                  x3956 - 12 (108 / 9) [1 iters/parent execution]
+                    x2594 - 7 (63 / 9) [1 iters/parent execution]
+                    x2605 - 6 (54 / 9) [1 iters/parent execution]
+                  x2617 - 8 (72 / 9) [1 iters/parent execution]
+                    x2615 - 0 (0 / 0) [0 iters/parent execution]
+                    x2616 - 8 (72 / 9) [1 iters/parent execution]
+                  x2624 - 7 (63 / 9) [1 iters/parent execution]
+                x2627 - 3 (3 / 1) [0 iters/parent execution]
+            x2631 - 0 (0 / 0) [0 iters/parent execution]
+      x2640 - 4 (4 / 1) [1 iters/parent execution]
+    x2647 - 5 (5 / 1) [1 iters/parent execution]
+    x3960 - 254 (254 / 1) [1 iters/parent execution]
+      x2702 - 249 (249 / 1) [1 iters/parent execution]
+        x2668 - 7 (7 / 1) [1 iters/parent execution] <# stalled: 0, #idle: 0>
+        x2701 - 245 (245 / 1) [1 iters/parent execution]
+          x2681 - 9 (9 / 1) [1 iters/parent execution] <# stalled: 0, #idle: 7>
+          x2700 - 231 (231 / 1) [1 iters/parent execution] <# stalled: 0, #idle: 166>
+      x2708 - 4 (4 / 1) [1 iters/parent execution]
+    x3961 - 14 (14 / 1) [1 iters/parent execution]
+      x2724 - 9 (9 / 1) [1 iters/parent execution]
+      x2734 - 4 (4 / 1) [1 iters/parent execution]
+    x3965 - 1326 (1326 / 1) [1 iters/parent execution]
+      x3062 - 1321 (1321 / 1) [1 iters/parent execution]
+        x3964 - 1317 (1317 / 1) [1 iters/parent execution]
+          x3962 - 853 (853 / 1) [1 iters/parent execution]
+            x2850 - 848 (848 / 1) [1 iters/parent execution]
+            x2884 - 6 (6 / 1) [1 iters/parent execution]
+          x2954 - 393 (393 / 1) [1 iters/parent execution]
+          x3963 - 65 (65 / 1) [1 iters/parent execution]
+            x3048 - 7 (7 / 1) [1 iters/parent execution]
+            x3058 - 60 (60 / 1) [1 iters/parent execution]
+        x3061 - 0 (0 / 0) [0 iters/parent execution]
+      x3079 - 6 (6 / 1) [1 iters/parent execution]
+    x3089 - 8 (8 / 1) [1 iters/parent execution]
+      x3087 - 0 (0 / 0) [0 iters/parent execution]
+      x3088 - 8 (8 / 1) [1 iters/parent execution]
+    x3094 - 5 (5 / 1) [1 iters/parent execution]
+    x3104 - 6 (6 / 1) [1 iters/parent execution]
+    x3115 - 6 (6 / 1) [1 iters/parent execution]
+    x3126 - 6 (6 / 1) [1 iters/parent execution]
+    x3137 - 6 (6 / 1) [1 iters/parent execution]
+    x3147 - 6 (6 / 1) [1 iters/parent execution]
+    x3158 - 6 (6 / 1) [1 iters/parent execution]
+    x3169 - 6 (6 / 1) [1 iters/parent execution]
+    x3180 - 6 (6 / 1) [1 iters/parent execution]
+    x3966 - 853 (853 / 1) [1 iters/parent execution]
+      x3283 - 848 (848 / 1) [1 iters/parent execution]
+      x3316 - 6 (6 / 1) [1 iters/parent execution]
+    x3384 - 393 (393 / 1) [1 iters/parent execution]
+    x3469 - 7 (7 / 1) [1 iters/parent execution]
+    x3827 - 934 (934 / 1) [1 iters/parent execution]
+      x3482 - 6 (24 / 4) [4 iters/parent execution]
+      x3486 - 4 (16 / 4) [4 iters/parent execution]
+      x3495 - 20 (60 / 3) [3 iters/parent execution]
+      x3525 - 6 (24 / 4) [4 iters/parent execution]
+      x3529 - 4 (16 / 4) [4 iters/parent execution]
+      x3538 - 20 (60 / 3) [3 iters/parent execution]
+      x3569 - 6 (24 / 4) [4 iters/parent execution]
+      x3573 - 4 (16 / 4) [4 iters/parent execution]
+      x3582 - 20 (60 / 3) [3 iters/parent execution]
+      x3613 - 6 (24 / 4) [4 iters/parent execution]
+      x3617 - 4 (16 / 4) [4 iters/parent execution]
+      x3626 - 20 (60 / 3) [3 iters/parent execution]
+      x3657 - 6 (24 / 4) [4 iters/parent execution]
+      x3661 - 4 (16 / 4) [4 iters/parent execution]
+      x3670 - 20 (60 / 3) [3 iters/parent execution]
+      x3701 - 6 (24 / 4) [4 iters/parent execution]
+      x3705 - 4 (16 / 4) [4 iters/parent execution]
+      x3714 - 20 (60 / 3) [3 iters/parent execution]
+      x3745 - 6 (24 / 4) [4 iters/parent execution]
+      x3749 - 4 (16 / 4) [4 iters/parent execution]
+      x3758 - 20 (60 / 3) [3 iters/parent execution]
+      x3789 - 6 (24 / 4) [4 iters/parent execution]
+      x3793 - 4 (16 / 4) [4 iters/parent execution]
+      x3802 - 20 (60 / 3) [3 iters/parent execution]
+      x3826 - 4 (16 / 4) [4 iters/parent execution]
+    x3860 - 246 (246 / 1) [1 iters/parent execution]
+      x3859 - 242 (242 / 1) [1 iters/parent execution]
+        x3854 - 79 (79 / 1) [1 iters/parent execution]
+          x3839 - 4 (4 / 1) [1 iters/parent execution] <# stalled: 0, #idle: 0>
+          x3853 - 70 (70 / 1) [1 iters/parent execution] <# stalled: 1, #idle: 0>
+        x3858 - 158 (158 / 1) [1 iters/parent execution] <# stalled: 0, #idle: 156>
+Total bytes written: 32
+Total bytes read: 32
+[SIM] FIN received, terminating
+Expected: 
+148 93 186 114 177 232 120 47 124 31 183 235 146 229 123 17 101 125 120 255 103 220 141 14 89 46 1 145 99 181 252 84 
+Got: 
+148 93 186 114 177 232 120 47 124 31 183 235 146 229 123 17 101 125 120 255 103 220 141 14 89 46 1 145 99 181 252 84 
+PASS: true (SHA PREPROCESS)
+$finish called from file "Top-harness.sv", line 964.
+$finish at simulation time             29656000
+           V C S   S i m u l a t i o n   R e p o r t 
+Time: 29656000 ps
+CPU Time:      1.740 seconds;       Data structure size:   2.7Mb
+Mon May 31 23:56:09 2021
+Received SIGHUP (signal 1), exiting.
+Realistic DRAM Simulation
