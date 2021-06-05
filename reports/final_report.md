@@ -120,18 +120,25 @@ As we started to optimize this base model, we ran into two main obstacles: the c
 ### Method 3
 Our implementation can be found [here](https://github.com/PhilipPfeffer/sha_hash/blob/0af3815a8bdc9d8e867f387a88384f288a1caa37/scala/sha_preprocessing.scala).
 
-Our third approach loads a larger (64*NUM_CHUNKS-byte) contiguous chunk of data in one go (i.e. Sequential.Foreach() { load big chunk; Foreach(... par NUM_CHUNKS){ preprocess; hash sequentially; }}). Then, each 64-byte chunk (of which there are NUM_CHUNKS chunks) is being preprocessed in parallel. (Note that each chunk must be pre-processed sequentially, but that we are processing multiple chunks in parallel). Here, we show the tradeoff for different values of NUM_CHUNKS=[1,2,4,8]. 
+Our third approach loads a larger (64xNUM_CHUNKS-byte) contiguous chunk of data in one go (i.e. Sequential.Foreach() { load big chunk; Foreach(... par NUM_CHUNKS){ preprocess; hash sequentially; }}). Then, each 64-byte chunk (of which there are NUM_CHUNKS chunks) is being preprocessed in parallel. (Note that each chunk must be pre-processed sequentially, but that we are processing multiple chunks in parallel). Here, we show the tradeoff for different values of NUM_CHUNKS=[1,2,4,8]. 
 
 ![Design iteration 3](./img/method3.png)
 
 ### Method 4
 Our implementation can be found [here](https://github.com/PhilipPfeffer/sha_hash/blob/0af3815a8bdc9d8e867f387a88384f288a1caa37/scala/sha_preprocessing_large_data.scala).
 
-A futher optimisation we would like to try is to first load as much data into SRAM as possible (rather than 64*NUM_CHUNKS-bytes). 
-    (i.e. Sequential.Foreach() { load biggest chunk possible; Sequential.Foreach(){ Foreach(... par NUM_CHUNKS){ preprocess; hash sequentially; }} })
-    We are limited on the parallelisation of the preprocessing by logic utilisation to NUM_CHUNKS=8 (we have not been able to get NUM_CHUNKS=16 to work). However, this does not limit the amount of data we can load. Therefore, we can load as much data as possible first, and then parallely process NUM_CHUNKS 64-byte chunks. This reduces the amount of time spent loading data into SRAM.
+A futher optimisation we would like to try is to first load as much data into SRAM as possible (rather than 64xNUM_CHUNKS-bytes). From running VCS simulations for method 3, we know that we can only parallely process up to 8 chunks at a time (64x8 bytes). We implement method 4 by loading a multiple of that amount of data. In other words we load LARGE_NUM_CHUNKS x NUM_CHUNKS x 64 bytes at a time, where LARGE_NUM_CHUNKS is a new hyperparameter to optimise.
+    (i.e. Sequential.Foreach(... by LARGE_MULTIPLIERx64xNUM_CHUNKS) { load LARGE_MULTIPLIERx64xNUM_CHUNKS bytes; Sequential.Foreach(...by 64xNUM_CHUNKS){ Foreach(... par NUM_CHUNKS){ preprocess; hash sequentially; }} })
+
+Since we are limited on the parallelisation of the preprocessing by logic utilisation to NUM_CHUNKS=8 (we have not been able to get NUM_CHUNKS=16 to work). However, this does not limit the amount of data we can load. Therefore, we can load as much data as possible first, and then parallely process NUM_CHUNKS 64-byte chunks. This reduces the amount of time spent loading data into SRAM.
 
 
+
+TODO:
+- Resource utilization for method 3: 8 chunk
+- Resource utilization for method 4: 8 chunk, 2 large chunk (whatsapped it to you)
+- Table for method 3
+- Table for method 4 (whatsapped it to you)
 
 ## Design Tradeoffs
 ```
