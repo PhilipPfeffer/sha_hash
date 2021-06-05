@@ -9,15 +9,13 @@ Philip Mateo Pfeffer, Raul Gallo Dagir
 - Appendix
 
 ## Introduction
-```
 SHA 256 is the most famous crytographic hashing function from the SHA-2 family, which was developed and published by the NSA in 2001. Among other applications in internet authentication and encryption protocols, SHA 256 recently stood out for its key role in transaction verification in blockchain technology. In the cryptocurrency gold rush, miners have been pouring billions of dollars into optimizing the mining algorithm and building custom hardware to increase the hashing rate. Curious about the challenges in scaling up the minig technology and as long time enthuasiasts of cryptocurrencies, we decided that optimizing the SHA 256 hashing algorithm would be a fitting end to our Stanford undergrad career in Electrical Engineering.
-```
 
 ## Application Overview
-```
 The SHA 256 pseudocode (from Wikipedia's article on SHA 2) has been included below - let's explore how it works. The first step involves initializing the initial hash values and the array of round constants which will be the base of the final hash calculations. Second, the message to be hashed is padded according to certain rules - the hashing algorithm will require the message length to be a multiple of 512. Third, the message will be broken into 512 bit chunks. Each chunk will be used to generate a 64-bit message scheduler array - the first 16 words will be the chunk itself, while the remaining 48 will be derived from the initial 16. Following that, the current value of each hash will be initialized, and the compression loop will be run, iterating through every one of the entries in the message scheduler array, running calculations and subsequently adding the compressed chunk values to the current hash values. After iterating through all the chunks, the final step consists in appending all the hashes together in a single number, and returning that.
 
 Pseudocode:
+```
 Initialize hash values:
 (first 32 bits of the fractional parts of the square roots of the first 8 primes 2..19):
 h0 := 0x6a09e667
@@ -106,16 +104,9 @@ digest := hash := h0 append h1 append h2 append h3 append h4 append h5 append h6
 ```
 
 ## Software Simulation 
-```
 The software simulation is not too complicated - it is simply an implementation of the pseudocode described above, which can be found on [this url](https://github.com/PhilipPfeffer/sha_hash/blob/main/software_demo/sha.py).
-```
 
 ## Hardware Implementation
-```
-// Add an overview of your haredware implementation here.
-// If you want to attach an image of your system diagram, you can leave the image in the 
-// img folder, and add it like this: 
-// ![system_diagram](./img/system_diagram.jpg)
 As a starting point to out implementation, we went through the Bitcoin proof-of-work algorithm posted on the official [Spatial website](https://spatial-lang.org/sha). Bitcoin uses the SHA of a SHA, so we managed to extract a baseline model to serve as a reference and as a starting point. In this preliminary implementation, each 64-byte chunk of data was being loaded and then preprocessed sequentially (i.e. Sequential.Foreach(... par NUM_CHUNKS){ load; preprocess; hash;}), as the diagram below depicts.
 
 ![Baseline model diagram](./img/method1_baseline.png)
@@ -131,7 +122,6 @@ Our third approach loads a larger (64*NUM_CHUNKS-byte) contiguous chunk of data 
 
  
 
-```
 
 ## Design Tradeoffs
 ```
