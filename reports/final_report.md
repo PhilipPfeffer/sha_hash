@@ -139,6 +139,7 @@ TODO:
 - Resource utilization for method 4: 8 chunk, 2 large chunk (whatsapped it to you)
 - Table for method 3
 - Table for method 4 (whatsapped it to you)
+- Add image for method 4
 
 ## Design Tradeoffs
 ```
