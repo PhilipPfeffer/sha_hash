@@ -168,8 +168,11 @@ Below you can find performance data for methods 3 and 4, which were described ab
 | LUTs                       | 46.62%  |
 | Slice registers            | 14.69%  |
 
+One can quickly notice that despite our hypothesis that the method 4 design would be invariably faster than method 3, the performance data shown above does not support that conclusion for the small messages that we were hashing. This last design iteration added significant overhead that makes it a bigger and slower design when compared to method 3. However, for larger messages, this overhead should not be that relevant, and method 4 should be more faster.
+
+
 
 ## Appendix
-All of our code, milestone reports, and diagrams can be found at [out GitHub repository](https://github.com/PhilipPfeffer/sha_hash).
+All of our code, milestone reports, and diagrams can be found in [our GitHub repository](https://github.com/PhilipPfeffer/sha_hash).
 
 Thanks for all the help and advice throughout the quarter, Kunle and Tian!
