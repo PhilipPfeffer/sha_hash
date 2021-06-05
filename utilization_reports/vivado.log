@@ -1,0 +1,11 @@
+#-----------------------------------------------------------
+# Vivado v2017.1 (64-bit)
+# SW Build 1846317 on Fri Apr 14 18:54:47 MDT 2017
+# IP Build 1846188 on Fri Apr 14 20:52:08 MDT 2017
+# Start of session at: Mon May 31 23:27:27 2021
+# Process ID: 134459
+# Current directory: /home/rgdagir/spatial/apps/src/sha_hash/utilization_reports
+# Command line: vivado -mode batch -source vivado.tcl -tclargs 100
+# Log file: /home/rgdagir/spatial/apps/src/sha_hash/utilization_reports/vivado.log
+# Journal file: /home/rgdagir/spatial/apps/src/sha_hash/utilization_reports/vivado.jou
+#-----------------------------------------------------------
