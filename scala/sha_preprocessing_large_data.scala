@@ -3,7 +3,7 @@ package spatial.tests.apps
 import spatial.dsl._
 
 
-@spatial object SHA_PREPROCESSING extends SpatialApp {
+@spatial object SHA_PREPROCESSING_LARGE_DATA extends SpatialApp {
 
   type ULong = FixPt[FALSE, _32, _0]
   type UInt8 = FixPt[FALSE, _8, _0]
@@ -25,8 +25,9 @@ import spatial.dsl._
       // Init
       val datalen = Reg[Int](0)
       val bitlen = RegFile[ULong](2, List(0.to[ULong],0.to[ULong]))
-      val NUM_CHUNKS = 4
-      val data = SRAM[UInt8](NUM_CHUNKS * 64)
+      val NUM_CHUNKS = 8
+      val LARGE_MULTIPLIER = 2
+      val data = SRAM[UInt8](LARGE_MULTIPLIER * NUM_CHUNKS * 64)
       val m_preprocess = SRAM[ULong](NUM_CHUNKS, 64)
 
       // Initial hash values that will be put in h0-h7
@@ -111,9 +112,9 @@ import spatial.dsl._
         Foreach(64 by 1){ i =>
           val tmp1 = H + EP1(E) + CH(E,F,G) + K_LUT(i) + m_preprocess(chunk_idx, i)
           val tmp2 = EP0(A) + MAJ(A,B,C)
-          println(" " + i + " : " + A.value + " " + B.value + " " +
-            C.value + " " + D.value + " " + E.value + " " + F.value + " " + G.value + " " + H.value)
-          println("    " + H.value + " " + EP1(E) + " " + CH(E,F,G) + " " + K_LUT(i) + " " + m_preprocess(chunk_idx, i))
+          // println(" " + i + " : " + A.value + " " + B.value + " " +
+          //   C.value + " " + D.value + " " + E.value + " " + F.value + " " + G.value + " " + H.value)
+          // println("    " + H.value + " " + EP1(E) + " " + CH(E,F,G) + " " + K_LUT(i) + " " + m_preprocess(chunk_idx, i))
           H := G; G := F; F := E; E := D + tmp1; D := C; C := B; B := A; A := tmp1 + tmp2
         }
 
@@ -125,13 +126,13 @@ import spatial.dsl._
       }
 
       // Populates a chunk of the m array (up to 512 bits * NUM_CHUNKS)
-      def populate_m_big_chunk(num_chunks: Int): Unit = {
+      def populate_m_sub_chunk(num_chunks: Int, offset: Int): Unit = {
         Foreach(0 until num_chunks.as[I32] by 1 par NUM_CHUNKS) { chunk_idx =>
           Sequential.Foreach(0 until 64 by 1){ byte_idx =>
             if ( byte_idx < 16 ) {
               val j = byte_idx << 2
-              // println(" m_preprocess(" + chunk_idx + ", " + byte_idx + ") = " + {(data(chunk_idx*64 + j).as[ULong] << 24) | (data(chunk_idx*64 + j+1).as[ULong] << 16) | (data(chunk_idx*64 + j+2).as[ULong] << 8) | (data(chunk_idx*64 + j+3).as[ULong])})
-              m_preprocess(chunk_idx, byte_idx) = (data(chunk_idx*64 + j).as[ULong] << 24) | (data(chunk_idx*64 + j+1).as[ULong] << 16) | (data(chunk_idx*64 + j+2).as[ULong] << 8) | (data(chunk_idx*64 + j+3).as[ULong])
+              // println(" m_preprocess(" + chunk_idx + ", " + byte_idx + ") = " + {(data(offset + chunk_idx*64 + j).as[ULong] << 24) | (data(offset + chunk_idx*64 + j+1).as[ULong] << 16) | (data(offset + chunk_idx*64 + j+2).as[ULong] << 8) | (data(offset + chunk_idx*64 + j+3).as[ULong])})
+              m_preprocess(chunk_idx, byte_idx) = (data(offset + chunk_idx*64 + j).as[ULong] << 24) | (data(offset + chunk_idx*64 + j+1).as[ULong] << 16) | (data(offset + chunk_idx*64 + j+2).as[ULong] << 8) | (data(offset + chunk_idx*64 + j+3).as[ULong])
             } else {
               // println(" m_preprocess(" + chunk_idx + ", " + byte_idx + ") = " + SIG1(m_preprocess(chunk_idx, byte_idx-2)) + " " + m_preprocess(chunk_idx, byte_idx-7) + " " + SIG0(m_preprocess(chunk_idx, byte_idx-15)) + " " + m_preprocess(chunk_idx, byte_idx-16))
               m_preprocess(chunk_idx, byte_idx) = SIG1(m_preprocess(chunk_idx, byte_idx-2)) + m_preprocess(chunk_idx, byte_idx-7) + SIG0(m_preprocess(chunk_idx, byte_idx-15)) + m_preprocess(chunk_idx, byte_idx-16)
@@ -139,6 +140,22 @@ import spatial.dsl._
           }
         }
       }
+      
+      // Populates a chunk of the m array (up to 512 bits * NUM_CHUNKS)
+      // def populate_m_big_chunk(num_chunks: Int): Unit = {
+      //   Foreach(0 until num_chunks.as[I32] by 1 par NUM_CHUNKS) { chunk_idx =>
+      //     Sequential.Foreach(0 until 64 by 1){ byte_idx =>
+      //       if ( byte_idx < 16 ) {
+      //         val j = byte_idx << 2
+      //         // println(" m_preprocess(" + chunk_idx + ", " + byte_idx + ") = " + {(data(chunk_idx*64 + j).as[ULong] << 24) | (data(chunk_idx*64 + j+1).as[ULong] << 16) | (data(chunk_idx*64 + j+2).as[ULong] << 8) | (data(chunk_idx*64 + j+3).as[ULong])})
+      //         m_preprocess(chunk_idx, byte_idx) = (data(chunk_idx*64 + j).as[ULong] << 24) | (data(chunk_idx*64 + j+1).as[ULong] << 16) | (data(chunk_idx*64 + j+2).as[ULong] << 8) | (data(chunk_idx*64 + j+3).as[ULong])
+      //       } else {
+      //         // println(" m_preprocess(" + chunk_idx + ", " + byte_idx + ") = " + SIG1(m_preprocess(chunk_idx, byte_idx-2)) + " " + m_preprocess(chunk_idx, byte_idx-7) + " " + SIG0(m_preprocess(chunk_idx, byte_idx-15)) + " " + m_preprocess(chunk_idx, byte_idx-16))
+      //         m_preprocess(chunk_idx, byte_idx) = SIG1(m_preprocess(chunk_idx, byte_idx-2)) + m_preprocess(chunk_idx, byte_idx-7) + SIG0(m_preprocess(chunk_idx, byte_idx-15)) + m_preprocess(chunk_idx, byte_idx-16)
+      //       }
+      //     }
+      //   }
+      // }
 
       // Populates a chunk of the m array (up to 512 bits)
       def populate_m_chunk(chunk_idx: I32): Unit = {
@@ -155,29 +172,32 @@ import spatial.dsl._
       }
 
       def SHA256(): Unit = {
-        // TODO: remove the sequential to try Pipe.
-        Sequential.Foreach(0 until len.value by 64*NUM_CHUNKS) { base =>
-          val data_chunk_size = min(floor((len.value-base)/64)*64, 64*NUM_CHUNKS)
-          data(0::data_chunk_size) load text_dram(base::base+data_chunk_size)
-          
-          // PREPROCESSING
-          populate_m_big_chunk((data_chunk_size/64).as[Int])
+        // PREPROCESSING
+        Sequential.Foreach(0 until len.value by LARGE_MULTIPLIER*64*NUM_CHUNKS) { base_outer =>
+            val outer_data_chunk_size = min(floor((len.value-base_outer)/64)*64, LARGE_MULTIPLIER*64*NUM_CHUNKS)
+            data(0::outer_data_chunk_size) load text_dram(base_outer::base_outer+outer_data_chunk_size)
+            
+            Sequential.Foreach(0 until LARGE_MULTIPLIER*64*NUM_CHUNKS by 64*NUM_CHUNKS) { base_inner =>
+                val offset = base_outer + base_inner
+                val inner_data_chunk_size = min(floor((len.value-offset)/64)*64, 64*NUM_CHUNKS)
+                populate_m_sub_chunk((inner_data_chunk_size/64).as[Int], base_inner.as[Int])
 
-          // HASHING
-          Sequential.Foreach(0 until 64*NUM_CHUNKS by 64 par 1) { i =>
-            val byte_idx = base + i
-            if (byte_idx <= len.value) {
-              val chunk_idx_transform = i/64
-              datalen := min(len.value - byte_idx, 64)
+                // HASHING
+                Sequential.Foreach(0 until 64*NUM_CHUNKS by 64 par 1) { i =>
+                    val inner_byte_idx = base_inner + i
+                    val outer_byte_idx = offset + i
+                    if (outer_byte_idx <= len.value) {
+                        val chunk_idx_transform = i/64
+                        datalen := min(len.value - outer_byte_idx, 64)
 
-              if (datalen.value == 64.to[Int]) {
-                sha_transform_preprocess(chunk_idx_transform)
-                DBL_INT_ADD(512);
-              }
+                        if (datalen.value == 64.to[Int]) {
+                            sha_transform_preprocess(chunk_idx_transform)
+                            DBL_INT_ADD(512);
+                        }
+                    }
+                }
             }
-          }
         }
-        
         // Process the final chunk if the message wasn't divisible into 512-bit chunks
         val end_chunk_byte_start = floor(len.value / 64) * 64
         val chunk_idx = Reg[Int](0)
@@ -235,7 +255,7 @@ import spatial.dsl._
     printArray(hashed_result, "Got: ")
 
     val cksum = hashed_gold.zip(hashed_result){_==_}.reduce{_&&_}
-    println("PASS: " + cksum + " (SHA PREPROCESS)")
+    println("PASS: " + cksum + " (SHA PREPROCESS LARGE DATA)")
     assert(cksum)
   }
 }
