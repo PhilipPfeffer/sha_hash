@@ -107,20 +107,30 @@ digest := hash := h0 append h1 append h2 append h3 append h4 append h5 append h6
 The software simulation is not too complicated - it is simply an implementation of the pseudocode described above, which can be found on [this url](https://github.com/PhilipPfeffer/sha_hash/blob/main/software_demo/sha.py).
 
 ## Hardware Implementation
-As a starting point to out implementation, we went through the Bitcoin proof-of-work algorithm posted on the official [Spatial website](https://spatial-lang.org/sha). Bitcoin uses the SHA of a SHA, so we managed to extract a baseline model to serve as a reference and as a starting point. In this preliminary implementation, each 64-byte chunk of data was being loaded and then preprocessed sequentially (i.e. Sequential.Foreach(... par NUM_CHUNKS){ load; preprocess; hash;}), as the diagram below depicts.
+### Method 1
+As a starting point to out implementation, we went through the Bitcoin proof-of-work algorithm posted on the official [Spatial website](https://spatial-lang.org/sha). Bitcoin uses the SHA of a SHA, so we managed to extract a baseline model to serve as a reference and as a starting point. In this preliminary implementation, each 64-byte chunk of data was being loaded and then preprocessed sequentially (i.e. Sequential.Foreach(... par NUM_CHUNKS){ load; preprocess; hash sequentially;}), as the diagram below depicts.
 
 ![Baseline model diagram](./img/method1_baseline.png)
 
-As we started to optimize this base model, we ran into two main obstacles: the compression loop has loop-carried dependencies, which makes it impossible to fully parallelize it, and the data loading/preprocessing was taking a lot of time. We did notice, however, that the preprocessing step could be pulled out of the loop and be executed in parellel as there were no real dependencies. Therefore, on our second design iteration, we parallelized the data loading and preprocessing (i.e. Foreach(... par NUM_CHUNKS){ load; preprocess}). This approach limits the size of NUM_CHUNKS to 2 because there are only 4 data loaders on the FPGA (trying the boundary case of NUM_CHUNKS=4 did not work).
+### Method 2
+As we started to optimize this base model, we ran into two main obstacles: the compression loop has loop-carried dependencies, which makes it impossible to fully parallelize it, and the data loading/preprocessing was taking a lot of time. We did notice, however, that the preprocessing step could be pulled out of the loop and be executed in parellel as there were no real dependencies. Therefore, on our second design iteration, we parallelized the data loading and preprocessing (i.e. Foreach(... par NUM_CHUNKS){ load; preprocess; hash sequentially; }). This approach limits the size of NUM_CHUNKS to 2 because there are only 4 data loaders on the FPGA (trying the boundary case of NUM_CHUNKS=4 did not work).
 
 ![Design iteration 2](./img/method2.png)
 
-Our third approach loads a larger (64*NUM_CHUNKS-byte) contiguous chunk of data in one go (i.e. Sequential.Foreach() { load big chunk; Foreach(... par NUM_CHUNKS){ preprocess }}). Then, each 64-byte chunk (of which there are NUM_CHUNKS chunks) is being preprocessed in parallel. (Note that each chunk must be pre-processed sequentially, but that we are processing multiple chunks in parallel). Here, we show the tradeoff for different values of NUM_CHUNKS=[1,2,4,8].
+### Method 3
+Our implementation can be found [here](https://github.com/PhilipPfeffer/sha_hash/blob/0af3815a8bdc9d8e867f387a88384f288a1caa37/scala/sha_preprocessing.scala).
+
+Our third approach loads a larger (64*NUM_CHUNKS-byte) contiguous chunk of data in one go (i.e. Sequential.Foreach() { load big chunk; Foreach(... par NUM_CHUNKS){ preprocess; hash sequentially; }}). Then, each 64-byte chunk (of which there are NUM_CHUNKS chunks) is being preprocessed in parallel. (Note that each chunk must be pre-processed sequentially, but that we are processing multiple chunks in parallel). Here, we show the tradeoff for different values of NUM_CHUNKS=[1,2,4,8]. 
 
 ![Design iteration 3](./img/method3.png)
 
+### Method 4
+Our implementation can be found [here](https://github.com/PhilipPfeffer/sha_hash/blob/0af3815a8bdc9d8e867f387a88384f288a1caa37/scala/sha_preprocessing_large_data.scala).
 
- 
+A futher optimisation we would like to try is to first load as much data into SRAM as possible (rather than 64*NUM_CHUNKS-bytes). 
+    (i.e. Sequential.Foreach() { load biggest chunk possible; Sequential.Foreach(){ Foreach(... par NUM_CHUNKS){ preprocess; hash sequentially; }} })
+    We are limited on the parallelisation of the preprocessing by logic utilisation to NUM_CHUNKS=8 (we have not been able to get NUM_CHUNKS=16 to work). However, this does not limit the amount of data we can load. Therefore, we can load as much data as possible first, and then parallely process NUM_CHUNKS 64-byte chunks. This reduces the amount of time spent loading data into SRAM.
+
 
 
 ## Design Tradeoffs
