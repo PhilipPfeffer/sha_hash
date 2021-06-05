@@ -26,11 +26,11 @@ Resource utilisation for NUM_CHUNKS=8.
 |    8       | 10977 cycles/iter |        -7.83%
 
 
-| LARGE_NUM_CHUNKS | NUM_CHUNKS |     Cycles        | % difference from previous
-|        1        |    4       | 11920 cycles/iter |        
-|        1        |    8       | 11392 cycles/iter |
-|        2        |    4       | 12020 cycles/iter |
-|        2        |    8       | 11320 cycles/iter |
+| LARGE_NUM_CHUNKS | NUM_CHUNKS |     Cycles        |
+|        1         |    4       | 11920 cycles/iter |        
+|        1         |    8       | 11392 cycles/iter |
+|        2         |    4       | 12020 cycles/iter |
+|        2         |    8       | 11320 cycles/iter |
 
 
 
