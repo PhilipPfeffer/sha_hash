@@ -144,11 +144,13 @@ Below you can find performance data for methods 3 and 4, which were described ab
 
 **Method 3 Total Cycle Count**
 |                            | 1 chunk | 2 chunks | 4 chunks | 8 chunks |
+|----------------------------|---------|----------|----------|----------|
 | Cycles/iter                | 18,264  | 13,873   | 11,909   | 10,977   |
 | % difference from previous | N/A     | -24.04%  | -14.15%  | -7.83%   |
 
 **Method 4 Total Cycle Count**
 | LARGE_NUM_CHUNKS | NUM_CHUNKS |     Cycles/iter        |
+|------------------|------------|------------------------|
 |        1         |    4       | 11920                  |
 |        1         |    8       | 11392                  |
 |        2         |    4       | 12020                  |
@@ -156,11 +158,13 @@ Below you can find performance data for methods 3 and 4, which were described ab
 
 **Method 3 Resource Utilization**
 |                 | 1 chunk | 2 chunks | 4 chunks | 8 chunks |
+|-----------------|---------|----------|----------|----------|
 | LUTs            | 19.46%  | 19.98%   | 24.54%   | 40.97%   |
 | Slice registers | 10.53%  | 10.76%   | 11.59%   | 13.12%   |
 
 **Method 4 Resource Utilization** 
 |                            | 2 large chunks, 8 chunks |
+|----------------------------|--------------------------|
 | LUTs                       | 46.62%  |
 | Slice registers            | 14.69%  |
 
